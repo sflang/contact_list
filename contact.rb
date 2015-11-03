@@ -1,31 +1,52 @@
 class Contact
+  @@contact_count = 0
  
-  attr_accessor :name, :email
+  attr_accessor :name, :email, :numbers, :id
 
-  def initialize(name, email)
+  def initialize(name, email, numbers)
     # TODO: assign local variables to instance variables
+
+    @name    = name
+    @email   = email
+    @numbers = []
+    @numbers << numbers unless numbers == nil
+    @id      = @@contact_count
+    @@contact_count += 1
   end
  
   def to_s
     # TODO: return string representation of Contact
+    string = "#{name}\t(#{email})"
+    #binding.pry
+    unless numbers == []
+      numbers.each do |num|
+        string << "\t" + num
+      end
+    end
+    string
+
   end
  
   ## Class Methods
-  class << self
-    def create(name, email)
-      # TODO: Will initialize a contact as well as add it to the list of contacts
-    end
+   class << self
+  #   def create(name, email)
+  #     # TODO: Will initialize a contact as well as add it to the list of contacts
+  #   end
  
-    def find(term)
-      # TODO: Will find and return contacts that contain the term in the first name, last name or email
-    end
+  #   def find(term)
+  #     # TODO: Will find and return contacts that contain the term in the first name, last name or email
+  #   end
  
-    def all
-      # TODO: Return the list of contacts, as is
-    end
+  #   def all
+  #     # TODO: Return the list of contacts, as is
+  #   end
     
-    def show(id)
-      # TODO: Show a contact, based on ID
+  #   def show(id)
+  #     # TODO: Show a contact, based on ID
+  #   end
+
+    def contact_count
+      @@contact_count
     end
     
   end

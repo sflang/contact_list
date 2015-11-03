@@ -1,0 +1,2 @@
+  class BadArgument < StandardError
+  end
