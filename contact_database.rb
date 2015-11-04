@@ -15,7 +15,7 @@ class ContactDatabase
         @@contacts << CSV.parse(name + "," + email)[0]
       else
         num_str = numbers.join(",")
-        binding.pry
+        #binding.pry
         @@contacts << CSV.parse(name + "," + email + "," + num_str)[0]
       end
     end

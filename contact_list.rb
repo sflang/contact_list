@@ -1,5 +1,5 @@
 #!/usr/local/rvm/rubies/ruby-2.1.3/bin/ruby
-#require 'pry'
+require 'pry'
 require_relative 'contact'
 require_relative 'contact_database'
 require_relative 'application'
