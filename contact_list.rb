@@ -2,7 +2,7 @@
 require 'pry'
 require_relative 'contact'
 require_relative 'contact_database'
-require_relative 'application'
+#require_relative 'application'
 require_relative 'exceptions'
 
 # TODO: Implement command line interaction
@@ -22,27 +22,39 @@ end
 def new
   puts "Email address?"
   email = STDIN.gets.chomp
-  raise BadArgument, "Missing email address" if email.length == 0
+  raise BadArgument, "Bad email address" unless email =~ /\S+@\S+\.\S+/
+  
   puts "Name?"
   name = STDIN.gets.chomp
-
-  numbers = []
-  puts "Phone?"
-  number = STDIN.gets.chomp
-  
-  while number.length > 0
-    numbers << number
-    puts "Phone?"
-    number = STDIN.gets.chomp
-  end
-
-
   raise BadArgument, "Missing name" if name.length == 0
   raise BadArgument, "Need first and last name" if name.split.length != 2
+
+  numbers = []
+  puts "Phone (Home, Work, Mobile, etc...), press enter to skip"
+  type = STDIN.gets.chomp
+  
+  while type.length > 0
+    num_string = type + ":\t("
+
+    puts "Phone Number? (ddd)ddd-dddd"
+    number = STDIN.gets.chomp
+
+    if parsed_fields = number.match(/\b(\d{3}).?(\d{3}).?(\d{4})/).captures
+      num_string += parsed_fields[0] + ")"
+      num_string += parsed_fields[1] + "-"
+      num_string += parsed_fields[2]
+    else
+      raise BadArgument, "Bad phone number"
+    end
+    numbers << num_string
+
+    puts "Phone (Home, Work, Mobile, etc...), press enter to skip"
+    type = STDIN.gets.chomp
+  end
   
   #binding.pry
-  unless Application.exists?(email)
-    Application.create(name, email, numbers)
+  unless Contact.exists?(email)
+    Contact.create(name, email, numbers)
   else
     puts("Duplicate email, try again")
   end
@@ -51,7 +63,7 @@ end
 
 def list
   #binding.pry
-  Application.all.each do |key, contact|
+  Contact.all.each do |key, contact|
     puts("#{contact.id}\t#{contact.to_s}")
   end
   puts ("---")
@@ -60,7 +72,7 @@ end
 
 def show
   raise BadArgument, "Missing command line argument" if ARGV.length < 2
-  contact = Application.show(ARGV[1].to_i)
+  contact = Contact.show(ARGV[1].to_i)
   if contact == nil
     puts("Contact id not in database") 
   else
@@ -70,7 +82,7 @@ end
 
 def find
   raise BadArgument, "Missing command line argument" if ARGV.length < 2
-  matches = Application.find(ARGV[1])
+  matches = Contact.find(ARGV[1])
   #binding.pry
 
   if matches.empty?
@@ -90,7 +102,7 @@ begin
 
   raise BadArgument, "Missing command line argument" if ARGV.length == 0
   
-  Application.open
+  Contact.open
   #binding.pry
 
   case ARGV[0]
@@ -103,7 +115,7 @@ begin
   end
 
   #binding.pry
-  Application.close
+  Contact.close
 
 
 
