@@ -39,7 +39,7 @@ def new
     puts "Phone Number? (ddd)ddd-dddd"
     number = STDIN.gets.chomp
 
-    if parsed_fields = number.match(/\b(\d{3}).?(\d{3}).?(\d{4})/).captures
+    if parsed_fields = number.match(/\b(\d{3}).?(\d{3}).?(\d{4})/)
       num_string += parsed_fields[0] + ")"
       num_string += parsed_fields[1] + "-"
       num_string += parsed_fields[2]
