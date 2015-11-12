@@ -1,22 +1,20 @@
 #!/usr/local/rvm/rubies/ruby-2.1.3/bin/ruby
 require 'pry'
+require 'pg'
 require_relative 'contact'
-require_relative 'contact_database'
-#require_relative 'application'
 require_relative 'exceptions'
 
 # TODO: Implement command line interaction
 # This should be the only file where you use puts and gets
 
-# class BadArgument < StandardError
-# end
 
 def help
   puts "Here is a list of available commands:"
   puts " new           - Create a new contact"
+  puts " remove 'id'   - Delete contact"
   puts " list          - List all contacts"
   puts " show 'id'     - Show a contact"
-  puts " find 'string' - Find a contact"
+  puts " find 'name'   - Find a contact by first or last name"
 end
 
 def new
@@ -24,37 +22,41 @@ def new
   email = STDIN.gets.chomp
   raise BadArgument, "Bad email address" unless email =~ /\S+@\S+\.\S+/
   
-  puts "Name?"
-  name = STDIN.gets.chomp
-  raise BadArgument, "Missing name" if name.length == 0
-  raise BadArgument, "Need first and last name" if name.split.length != 2
+  puts "First Name?"
+  firstname = STDIN.gets.chomp
+  raise BadArgument, "Missing first name" if firstname.length == 0
 
-  numbers = []
-  puts "Phone (Home, Work, Mobile, etc...), press enter to skip"
-  type = STDIN.gets.chomp
+  puts "Last Name?"
+  lastname = STDIN.gets.chomp
+  raise BadArgument, "Missing last name" if lastname.length == 0
+
+  # numbers = []
+  # puts "Phone (Home, Work, Mobile, etc...), press enter to skip"
+  # type = STDIN.gets.chomp
   
-  while type.length > 0
-    num_string = type + ":\t("
+  # while type.length > 0
+  #   num_string = type + ":\t("
 
-    puts "Phone Number? (ddd)ddd-dddd"
-    number = STDIN.gets.chomp
+  #   puts "Phone Number? (ddd)ddd-dddd"
+  #   number = STDIN.gets.chomp
 
-    if parsed_fields = number.match(/\b(\d{3}).?(\d{3}).?(\d{4})/)
-      num_string += parsed_fields[0] + ")"
-      num_string += parsed_fields[1] + "-"
-      num_string += parsed_fields[2]
-    else
-      raise BadArgument, "Bad phone number"
-    end
-    numbers << num_string
+  #   if parsed_fields = number.match(/\b(\d{3}).?(\d{3}).?(\d{4})/)
+  #     num_string += parsed_fields[0] + ")"
+  #     num_string += parsed_fields[1] + "-"
+  #     num_string += parsed_fields[2]
+  #   else
+  #     raise BadArgument, "Bad phone number"
+  #   end
+  #   numbers << num_string
 
-    puts "Phone (Home, Work, Mobile, etc...), press enter to skip"
-    type = STDIN.gets.chomp
-  end
+  #   puts "Phone (Home, Work, Mobile, etc...), press enter to skip"
+  #   type = STDIN.gets.chomp
+  # end
   
   #binding.pry
-  unless Contact.exists?(email)
-    Contact.create(name, email, numbers)
+  unless Contact.find_by_email(email)
+    contact = Contact.new(firstname, lastname, email)
+    contact.save
   else
     puts("Duplicate email, try again")
   end
@@ -63,16 +65,17 @@ end
 
 def list
   #binding.pry
-  Contact.all.each do |key, contact|
+  contacts = Contact.all
+  contacts.each do |contact|
     puts("#{contact.id}\t#{contact.to_s}")
   end
   puts ("---")
-  puts "#{Contact.contact_count} records total"
+  puts "#{contacts.length} records total"
 end
 
 def show
   raise BadArgument, "Missing command line argument" if ARGV.length < 2
-  contact = Contact.show(ARGV[1].to_i)
+  contact = Contact.find(ARGV[1].to_i)
   if contact == nil
     puts("Contact id not in database") 
   else
@@ -80,9 +83,22 @@ def show
   end
 end
 
+def remove
+  raise BadArgument, "Missing command line argument" if ARGV.length < 2
+  contact = Contact.find(ARGV[1].to_i)
+  if contact == nil
+    puts("Contact id not in database") 
+  else
+    contact.destroy
+  end
+end
+
 def find
   raise BadArgument, "Missing command line argument" if ARGV.length < 2
-  matches = Contact.find(ARGV[1])
+  matches = Contact.find_all_by_firstname(ARGV[1])
+  Contact.find_all_by_lastname(ARGV[1]).each do |contact|
+    matches << contact
+  end
   #binding.pry
 
   if matches.empty?
@@ -102,20 +118,16 @@ begin
 
   raise BadArgument, "Missing command line argument" if ARGV.length == 0
   
-  Contact.open
-  #binding.pry
 
   case ARGV[0]
-  when 'new' then new
-  when 'list' then list
-  when 'show' then show
-  when 'find' then find
-  when 'help' then help
+  when 'new'    then new
+  when 'list'   then list
+  when 'show'   then show
+  when 'find'   then find
+  when 'help'   then help
+  when 'remove' then remove
   else raise BadArgument, "Unrecognized command line argument"    
   end
-
-  #binding.pry
-  Contact.close
 
 
 
